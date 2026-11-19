@@ -270,6 +270,29 @@ A helper shortcut for `window.location.reload()`. Used to force a page reload.
 pjax.reload()
 ```
 
+### `destroy()`
+
+Turns Pjax off at runtime. It removes all the listeners Pjax attached (on links,
+forms and the window), aborts any request in flight and restores the default
+behavior of links and forms, so every navigation afterwards is a regular full
+page load. This is useful if you want the next visit to fetch fresh scripts and
+stylesheets from the server, instead of having Pjax swap the content in.
+
+Listeners attached by other code on the same links and forms keep working, and
+content added to the page after `destroy()` is not hooked by Pjax anymore.
+
+```js
+var pjax = new Pjax()
+
+// later, when Pjax is not wanted anymore
+pjax.destroy()
+
+// calling it again is harmless and does nothing
+pjax.destroy()
+```
+
+Calling `destroy()` more than once is harmless.
+
 ## Options
 
 ### `elements` (String, default: `"a[href], form[action]"`)
