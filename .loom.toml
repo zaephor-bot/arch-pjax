@@ -1,0 +1,2 @@
+# raw-intake battery verify gate
+verify_cmd = "sh -c 'test -f package.json || exit 0; npm ci --silent || npm install --silent; npm test --silent'"
