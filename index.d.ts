@@ -22,6 +22,14 @@ declare class Pjax {
 
   reload: VoidFunction;
 
+  /**
+   * Turns Pjax off at runtime: removes all the listeners Pjax attached (on links,
+   * forms and the window), aborts any pending request and restores the default
+   * link and form behavior, so every navigation afterwards is a full page load.
+   * Calling this method more than once is harmless.
+   */
+  destroy(): void;
+
   attachLink(el: HTMLAnchorElement): void;
 
   attachForm(el: HTMLFormElement): void;

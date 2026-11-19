@@ -28,31 +28,38 @@ var Pjax = function(options) {
 
   this.maxUid = this.lastUid = newUid();
 
+  // Whether destroy() has been called on this instance.
+  // Once it’s true, elements are not hooked anymore and
+  // requests & responses are ignored.
+  this.destroyed = false;
+
+  // References to the listeners attached to links and forms,
+  // so destroy() can remove exactly the listeners Pjax attached
+  this.elementListeners = [];
+
   this.parseDOM(document);
 
-  on(
-    window,
-    "popstate",
-    function(st) {
-      if (st.state) {
-        var opt = clone(this.options);
-        opt.url = st.state.url;
-        opt.title = st.state.title;
-        // Since state already exists, prevent it from being pushed again
-        opt.history = false;
-        opt.scrollPos = st.state.scrollPos;
-        if (st.state.uid < this.lastUid) {
-          opt.backward = true;
-        } else {
-          opt.forward = true;
-        }
-        this.lastUid = st.state.uid;
-
-        // @todo implement history cache here, based on uid
-        this.loadUrl(st.state.url, opt);
+  this.popstateListener = function(st) {
+    if (st.state) {
+      var opt = clone(this.options);
+      opt.url = st.state.url;
+      opt.title = st.state.title;
+      // Since state already exists, prevent it from being pushed again
+      opt.history = false;
+      opt.scrollPos = st.state.scrollPos;
+      if (st.state.uid < this.lastUid) {
+        opt.backward = true;
+      } else {
+        opt.forward = true;
       }
-    }.bind(this)
-  );
+      this.lastUid = st.state.uid;
+
+      // @todo implement history cache here, based on uid
+      this.loadUrl(st.state.url, opt);
+    }
+  }.bind(this);
+
+  on(window, "popstate", this.popstateListener);
 };
 
 Pjax.switches = switches;
@@ -76,6 +83,8 @@ Pjax.prototype = {
   reload: function() {
     window.location.reload();
   },
+
+  destroy: require("./lib/proto/destroy"),
 
   attachLink: require("./lib/proto/attach-link"),
 
@@ -172,6 +181,11 @@ Pjax.prototype = {
   handleResponse: require("./lib/proto/handle-response"),
 
   loadUrl: function(href, options) {
+    // Ignore any attempt to load a URL after destroy() has been called
+    if (this.destroyed) {
+      return;
+    }
+
     options =
       typeof options === "object"
         ? extend({}, this.options, options)
